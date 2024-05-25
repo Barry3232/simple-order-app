@@ -1,12 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shopping_app/models/shopmodel.dart';
 
+import '../provider/shopProvider.dart';
 import 'cart.dart';
 
-class CatalogScreen extends StatelessWidget{
+List<ShopModel> catalog = [
+  ShopModel(color: Colors.orange, title: 'Code Smell'),
+  ShopModel(color: Colors.pink, title: 'Control Flow'),
+  ShopModel(color: Colors.purple, title: 'Interpreter'),
+  ShopModel(color: Colors.blue, title: 'Recursion'),
+  ShopModel(color: Colors.blueAccent, title: 'Sprint'),
+  ShopModel(color: Colors.blueAccent, title: 'Heisenbug'),
+  ShopModel(color: Colors.blueGrey, title: 'Spaghetti'),
+  ShopModel(color: Colors.brown, title: 'Hydra Code'),
+  ShopModel(color: Colors.green, title: 'Off-By-One'),
+  ShopModel(color: Colors.greenAccent, title: 'Block'),
+];
+
+class CatalogScreen extends ConsumerStatefulWidget{
   const CatalogScreen({super.key});
 
   @override
+  ConsumerState<CatalogScreen> createState() => _CatalogScreenState();
+}
+
+class _CatalogScreenState extends ConsumerState<CatalogScreen> {
+  @override
   Widget build(BuildContext context) {
+    final cartProvider = ref.watch(shopProvider);
     return PopScope(
       onPopInvoked: (_){
 
@@ -33,151 +55,28 @@ class CatalogScreen extends StatelessWidget{
             const SizedBox(
               height: 25,
             ),
-            ListTile(
-              leading: Container(
-                color: Colors.orange,
-                height: 80,
-                width: 65,
-              ),
-              title: const Text('Code Smell',
-              style: TextStyle(fontSize: 20),),
-              trailing: const Text('Add',style: TextStyle(fontSize: 12),),
-            ),
 
-           const SizedBox(
-          height: 25,
-        ),
+            ListView.separated(
+              physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemBuilder: (context, i)=>
+                InkWell(
+                  onTap: (){
+                    catalog[i].isAdded = !catalog[i].isAdded;
 
-            ListTile(
-              leading: Container(
-                color: Colors.pink,
-                height: 80,
-                width: 65,
-              ),
-              title: const Text('Control Flow',
-                style: TextStyle(fontSize: 20),),
-              trailing: const Text('Add',style: TextStyle(fontSize: 12),),
-            ),
+                    if( !catalog[i].isAdded){
+                      cartProvider.removeFromCart(title: catalog[i].title);
+                    }else{
+                      cartProvider.addToCart(title: catalog[i].title, color: catalog[i].color);
+                    }
 
-            const SizedBox(
+                    setState((){});
+                  },
+                    child: listTileHolder(catalog[i])), separatorBuilder: (context, index)=>  const SizedBox(
               height: 25,
-            ),
+            ), itemCount: catalog.length)
 
-            ListTile(
-              leading: Container(
-                color: Colors.purple,
-                height: 80,
-                width: 65,
-              ),
-              title: const Text('Interpreter',
-                style: TextStyle(fontSize: 20),),
-              trailing: const Text('Add',style: TextStyle(fontSize: 12),),
-            ),
 
-            const SizedBox(
-              height: 25,
-            ),
-
-            ListTile(
-              leading: Container(
-                color: Colors.blueAccent,
-                height: 80,
-                width: 65,
-              ),
-              title: const Text('Recursion',
-                style: TextStyle(fontSize: 20),),
-              trailing: const Text('Add',style: TextStyle(fontSize: 12),),
-            ),
-
-            const SizedBox(
-              height: 25,
-            ),
-
-            ListTile(
-              leading: Container(
-                color: Colors.blue,
-                height: 80,
-                width: 65,
-              ),
-              title: const Text('Sprint',
-                style: TextStyle(fontSize: 20),),
-              trailing: const Text('Add',style: TextStyle(fontSize: 12),),
-            ),
-
-            const SizedBox(
-              height: 25,
-            ),
-
-            ListTile(
-              leading: Container(
-                color: Colors.lightBlue,
-                height: 80,
-                width: 65,
-              ),
-              title: const Text('Heisenbug',
-                style: TextStyle(fontSize: 20),),
-              trailing: const Text('Add',style: TextStyle(fontSize: 12),),
-            ),
-
-            const SizedBox(
-              height: 25,
-            ),
-
-            ListTile(
-              leading: Container(
-                color: Colors.blueGrey,
-                height: 80,
-                width: 65,
-              ),
-              title: const Text('Spaghetti',
-                style: TextStyle(fontSize: 20),),
-              trailing: const Text('Add',style: TextStyle(fontSize: 12),),
-            ),
-
-            const SizedBox(
-              height: 25,
-            ),
-
-            ListTile(
-              leading: Container(
-                color: Colors.brown,
-                height: 80,
-                width: 65,
-              ),
-              title: const Text('Hydra Code',
-                style: TextStyle(fontSize: 20),),
-              trailing: const Text('Add',style: TextStyle(fontSize: 12),),
-            ),
-
-            const SizedBox(
-              height: 25,
-            ),
-
-            ListTile(
-              leading: Container(
-                color: Colors.green,
-                height: 80,
-                width: 65,
-              ),
-              title: const Text('Off-By-One',
-                style: TextStyle(fontSize: 20),),
-              trailing: const Text('Add',style: TextStyle(fontSize: 12),),
-            ),
-
-            const SizedBox(
-              height: 25,
-            ),
-
-            ListTile(
-              leading: Container(
-                color: Colors.greenAccent,
-                height: 80,
-                width: 65,
-              ),
-              title: const Text('Block',
-                style: TextStyle(fontSize: 20),),
-              trailing: const Text('Add',style: TextStyle(fontSize: 12),),
-            ),
           ],
         ),
 
@@ -188,4 +87,18 @@ class CatalogScreen extends StatelessWidget{
     );
   }
 
+  Widget listTileHolder(ShopModel shopper){
+    return ListTile(
+      leading: Container(
+        color: shopper.color,
+        height: 80,
+        width: 65,
+      ),
+      title:  Text(shopper.title,
+        style: const TextStyle(fontSize: 20),),
+      trailing: shopper.isAdded
+          ? const Icon(Icons.check)
+          :const Text( 'Add',style: TextStyle(fontSize: 12),),
+    );
+  }
 }
